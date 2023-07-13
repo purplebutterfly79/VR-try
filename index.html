@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>VR 3D Model</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
+  </head>
+  <body>
+    <a-scene vr-mode-ui="enabled: true">
+      <!-- Load the 3D model -->
+      <a-entity id="model" gltf-model="recentred_scene.glb"></a-entity>
+      
+      <!-- Check user's distance -->
+      <a-entity id="camera" camera look-controls></a-entity>
+      
+      <!-- Switch to an image if distance crosses a threshold -->
+      <a-image id="image" src="0_0.jpg" visible="false"></a-image>
+    </a-scene>
+    
+    <script>
+      // Function to calculate distance between two points
+      function calculateDistance(point1, point2) {
+        const dx = point1.x - point2.x;
+        const dy = point1.y - point2.y;
+        const dz = point1.z - point2.z;
+        return Math.sqrt(dx * dx + dy * dy + dz * dz);
+      }
+      
+      // Get references to the model and image entities
+      const modelEntity = document.querySelector('#model');
+      const imageEntity = document.querySelector('#image');
+      
+      // Set the threshold distance (in meters)
+      const thresholdDistance = 2;
+      
+      // Check distance on each frame update
+      AFRAME.registerComponent('check-distance', {
+        tick: function () {
+          const cameraPosition = this.el.object3D.position;
+          const modelPosition = modelEntity.object3D.position;
+          const distance = calculateDistance(cameraPosition, modelPosition);
+          
+          if (distance > thresholdDistance) {
+            // Switch to image
+            modelEntity.setAttribute('visible', 'false');
+            imageEntity.setAttribute('visible', 'true');
+          } else {
+            // Display the 3D model
+            modelEntity.setAttribute('visible', 'true');
+            imageEntity.setAttribute('visible', 'false');
+          }
+        }
+      });
+      
+      // Attach the check-distance component to the camera entity
+      document.querySelector('#camera').setAttribute('check-distance', '');
+    </script>
+  </body>
+</html>
